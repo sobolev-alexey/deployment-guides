@@ -1,0 +1,5 @@
+dispatch:
+  - url: "my-iota-app.iota.eco/*"
+    service: default
+  - url: "my-iota-app-api.iota.eco/*"
+    service: api
