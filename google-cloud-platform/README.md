@@ -72,7 +72,7 @@ gcloud app deploy --project my-iota-app --quiet
 
 The first time you perform a deploy the `.gcloudignore` file will be created locally, this specifies files to skip when deploying. You can add to this file as required, in the case of a React app we might want to add `public/` and `src/` as we are only interested in deploying the `build` folder.
 
-The app should now be available at [https://my-iota-app.appspot.com](https://my-iota-app.appspot.com])
+The app should now be available at [https://my-iota-app.appspot.com](https://my-iota-app.appspot.com)
 
 When you open the site you will see an error, this is because although we have configured the app to run on nodejs we have not implemented any routing.
 
@@ -89,7 +89,7 @@ handlers:
   upload: build/(.*)
 ```
 
-The app should now successfully be running at [https://my-iota-app.appspot.com](https://my-iota-app.appspot.com])
+The app should now successfully be running at [https://my-iota-app.appspot.com](https://my-iota-app.appspot.com)
 
 When you update your application just build it locally and run the deploy command again.
 
@@ -278,3 +278,7 @@ The rest of the deployment process stays the same.
 ## Logging
 
 There are a multitude of logs available from deployment to runtime, they are all available here [GCP - Log Viewer](https://console.cloud.google.com/logs/viewer?project=my-iota-app)
+
+## Automation/CI
+
+GCP also has the ability to trigger deployment etc from GitHub using [GCP - CloudBuild](https://cloud.google.com/cloud-build/)
