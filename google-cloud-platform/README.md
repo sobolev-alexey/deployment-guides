@@ -16,7 +16,7 @@ e.g.
 * Project Name: `my-iota-app`
 * Project ID: `my-iota-app`
 * Organization: `iota.org`
-* Locaion: `iota.org`
+* Location: `iota.org`
 
 The project ID is the property we will use most in future steps and must be unique across the whole GCP environment.
 
