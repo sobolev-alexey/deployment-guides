@@ -236,7 +236,7 @@ az container create -n my-iota-app-docker -g my-iota-app-rg --image myiotaappreg
 
 Your docker image should now be running at <http://my-iota-app-docker.westeurope.azurecontainer.io:3001> or similar depending on the region you are using.
 
-**There is no automatic method for adding https redirect to the exposed port, instead you will need to great an nginx server with certificate which redirects port 443 to the docker container.**
+**There is no automatic method for adding https redirect to the exposed port, instead you will need to create an nginx server with certificate which redirects port 443 to the docker container.**
 
 ## Logging
 
