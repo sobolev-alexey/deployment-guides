@@ -87,7 +87,7 @@ You must create a CNAME records for you sub-domain with the DNS registrar for th
 The DNS record should contain the following information.
 
 * type: CNAME
-* name: `my-iota-app`
+* name: `my-iota-app-az`
 * content: `my-iota-app.azurewebsites.net`
 
 There is probably a web page to perform this action on your registrar, some also provide APIs to perform this operation.
@@ -99,7 +99,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records" \
 -H "X-Auth-Email: $EMAIL" \
 -H "X-Auth-Key: $API-KEY" \
 -H "Content-Type: application/json" \
---data '{"type":"CNAME","name":"my-iota-app","content":"my-iota-app.azurewebsites.net","ttl":1,"priority":10,"proxied":true}'
+--data '{"type":"CNAME","name":"my-iota-app-az","content":"my-iota-app.azurewebsites.net","ttl":1,"priority":10,"proxied":true}'
 ```
 
 ## Custom Domain Name
@@ -107,10 +107,10 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records" \
 Once the CNAME mapping has been created you can execute the following command to add the domain name to your Azure web app.
 
 ```shell
-az webapp config hostname add -g my-iota-app-rg --webapp-name my-iota-app --hostname my-iota-app.iota.eco
+az webapp config hostname add -g my-iota-app-rg --webapp-name my-iota-app --hostname my-iota-app-az.dag.sh
 ```
 
-You should now be able to access your site at <https://my-iota-app.iota.eco>
+You should now be able to access your site at <https://my-iota-app-az.dag.sh>
 
 At the moment there is no SSL certificate associated with app in Azure settings, but because we setup Cloudflare in proxied mode it automatically gets a valid certificate.
 
@@ -131,9 +131,9 @@ Create a new folder for your api e.g. `my-iota-api` and a new `package.json`, th
 Add a simple expressjs server script e.g. `app.js`
 
 ```js
-const express = require('express')
-const app = express()
-const port = process.env.PORT || 3000
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3001;
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
@@ -143,7 +143,7 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 Repeat the deploy process, again the deploy will detect the runtime required.
 
 ```shell
-az webapp up -g my-iota-app-rg -n my-iota-app-api -l westeurope
+az webapp up -g my-iota-app-rg -n my-iota-api -l westeurope
 ```
 
 In your `package.json` we also need to add the `start` script which is run by the new `nodejs` runtime.
@@ -154,17 +154,18 @@ In your `package.json` we also need to add the `start` script which is run by th
     },
 ```
 
-No other configuration is necessary the expressjs app will now be available at <https://my-iota-app-api.azurewebsites.net/>
+No other configuration is necessary the expressjs app will now be available at <https://my-iota-api.azurewebsites.net/>
 
 ## Service Domain Name
 
 Repeat the same process as for the main web app, adding CNAME record and then custom domain name, enabling `https-only` and adding a certificate.
 
 ```shell
-az webapp config hostname add -g my-iota-app-rg --webapp-name my-iota-api --hostname my-iota-api.iota.eco
+az webapp config hostname add -g my-iota-app-rg --webapp-name my-iota-api --hostname my-iota-api-az.dag.sh
+az webapp update -g my-iota-app-rg -n my-iota-app --https-only true
 ```
 
-Your API will now be available at <https://my-iota-app-api-azure.iota.eco/>
+Your API will now be available at <https://my-iota-api-az.dag.sh/>
 
 ## Instances
 
@@ -186,16 +187,61 @@ You should consider decomissioning App Service plans if you are not using them t
 
 ## Websockets
 
----
+There is no additional configuration required to deploy websockets for an application.
 
 ## Docker
 
----
+You first need to create a registry to store your docker images on Azure, if you have not already done so. For more information on the sku option see [Azure SKUs](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-skus). In addition we set admin access for the registry.
+
+```shell
+az acr create -n myiotaappreg -g my-iota-app-rg --sku Basic
+az acr update -n myiotaappreg --admin-enabled true
+```
+
+After creating your `dockerfile` and `.dockerignore` for your application you must build the docker image locally and add to the registry you just created.
+
+```shell
+docker build -t myiotaappreg.azurecr.io/my-iota-api:v1 .
+```
+
+You can check if it works locally by running.
+
+```shell
+docker run -p 3001:3001 myiotaappreg.azurecr.io/my-iota-api:v1
+```
+
+Finally push it to the registry.
+
+```shell
+docker push myiotaappreg.azurecr.io/my-iota-api:v1
+```
+
+You may receive `authentication required` response when pushing to the registry, in which case you will need to run the following.
+
+```shell
+az acr login --name myiotaappreg
+```
+
+To deploy the container you need to find out the password, you can get it running the following script.
+
+```shell
+az acr credential show -n myiotaappreg --query "passwords[0].value"  -o tsv
+```
+
+Now that the container is in the registry and you have the credentials you can deploy it with the following script.
+
+```shell
+az container create -n my-iota-app-docker -g my-iota-app-rg --image myiotaappreg.azurecr.io/my-iota-api:v1 --registry-username myiotaappreg --registry-password T5fuXA1fbQx9Cc9fH5V0PYama9K/fKCq --dns-name-label my-iota-app-docker --ports 3001
+```
+
+Your docker image should now be running at <http://my-iota-app-docker.westeurope.azurecontainer.io:3001> or similar depending on the region you are using.
+
+**There is no automatic method for adding https redirect to the exposed port, instead you will need to great an nginx server with certificate which redirects port 443 to the docker container.**
 
 ## Logging
 
----
+Just about every resource deployed to Azure has associated logging, just login to the portal and take a look at the resource your are interested in.
 
 ## Automation/CI
 
----
+There is an Azure Action for Github, more information can be found in this repo [Azure - Actions](https://github.com/Azure/actions)

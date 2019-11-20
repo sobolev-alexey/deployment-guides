@@ -1,3 +1,6 @@
 runtime: custom
 env: flex
 service: api
+
+network:
+  session_affinity: true

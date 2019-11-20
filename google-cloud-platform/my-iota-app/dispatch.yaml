@@ -1,5 +1,5 @@
 dispatch:
-  - url: "my-iota-app.iota.eco/*"
+  - url: "my-iota-app-gcp.dag.sh/*"
     service: default
-  - url: "my-iota-app-api.iota.eco/*"
+  - url: "my-iota-api-gcp.dag.sh/*"
     service: api

@@ -102,7 +102,7 @@ To map a domain name to you application you must first have the tld e.g. `iota.o
 If you want your app to be available at `my-iota-app.dag.sh` you would execute the following script.
 
 ```shell
-gcloud app domain-mappings create --project my-iota-app my-iota-app.dag.sh
+gcloud app domain-mappings create --project my-iota-app my-iota-app-gcp.dag.sh
 ```
 
 This will associate the sub-domain with GCP and generate a certificate for it, the certificate can take a few minutes to generate.
@@ -118,7 +118,7 @@ You must create a CNAME records for you sub-domain with the DNS registrar for th
 The DNS record should contain the following information.
 
 * type: CNAME
-* name: `my-iota-app`
+* name: `my-iota-app-gcp`
 * content: `ghs.googlehosted.com`
 
 There is probably a web page to perform this action on your registrar, some also provide APIs to perform this operation.
@@ -130,10 +130,10 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records" \
 -H "X-Auth-Email: $EMAIL" \
 -H "X-Auth-Key: $API-KEY" \
 -H "Content-Type: application/json" \
---data '{"type":"CNAME","name":"my-iota-app","content":"ghs.googlehosted.com","ttl":1,"priority":10,"proxied":false}'
+--data '{"type":"CNAME","name":"my-iota-app-gcp","content":"ghs.googlehosted.com","ttl":1,"priority":10,"proxied":false}'
 ```
 
-Once created and your dns update has propogated your app should be available at [https://my-iota-app.dag.sh](https://my-iota-app.dag.sh) with a valid certificate.
+Once created and your dns update has propogated your app should be available at [https://my-iota-app-gcp.dag.sh](https://my-iota-app-gcp.dag.sh) with a valid certificate.
 
 ## Adding a second component
 
@@ -148,7 +148,7 @@ Add a simple expressjs server script e.g. `app.js`
 ```js
 const express = require('express')
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3001;
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
@@ -174,7 +174,7 @@ In your `package.json` we also need to add the `start` script which is run by th
     },
 ```
 
-You should be able to test it works locally by running `npm run start` and then opening the browser at <http://localhost:3000>
+You should be able to test it works locally by running `npm run start` and then opening the browser at <http://localhost:3001>
 
 To deploy the new service we use exactly the same script as before from the service folder. It will then use the `service` property from the `app.yaml` to determine where to deploy it.
 
@@ -193,16 +193,16 @@ Once deployed the new service will be available at <https://api-dot-my-iota-app.
 To add a name mapping to the service we also issue the same command as before. Because the `app.yaml` contains the `service` property the new domain gets associated with the new service.
 
 ```shell
-gcloud app domain-mappings create --project my-iota-app my-iota-app-api.dag.sh
+gcloud app domain-mappings create --project my-iota-app my-iota-api-gcp.dag.sh
 ```
 
 We also need to add the CNAME record to our DNS as before.
 
 * type: CNAME
-* name: `my-iota-app-api`
+* name: `my-iota-api-gcp`
 * content: `ghs.googlehosted.com`
 
-Now that we have deployed the service and added the domain we should be able to access the service at <https://my-iota-app-api.dag.sh>. However you will notice that you are being served the default react site! We need to create some dispatch rules.
+Now that we have deployed the service and added the domain we should be able to access the service at <https://my-iota-api-gcp.dag.sh>. However you will notice that you are being served the default react site! We need to create some dispatch rules.
 
 ## Dispatch Rules
 
@@ -212,9 +212,9 @@ So we create a `dispatch.yaml` in the folder for the `default` service. The cont
 
 ```yaml
 dispatch:
-  - url: "my-iota-app.dag.sh/*"
+  - url: "my-iota-app-gcp.dag.sh/*"
     service: default
-  - url: "my-iota-app-api.dag.sh/*"
+  - url: "my-iota-api-gcp.dag.sh/*"
     service: api
 ```
 
@@ -224,7 +224,7 @@ We must then re-run the deploy script for the `default` service (the React app i
 gcloud app deploy --project my-iota-app dispatch.yaml --quiet
 ```
 
-Finally the `api` should now be running on <https://my-iota-app-api.dag.sh>
+Finally the `api` should now be running on <https://my-iota-api-gcp.dag.sh>
 
 ## Instances
 
@@ -259,7 +259,7 @@ FROM node:10.13.0-alpine
 WORKDIR /usr/src/app
 COPY . ./
 RUN npm install
-EXPOSE 3000
+EXPOSE 3001
 CMD ["node", "app.js"]
 ```
 
