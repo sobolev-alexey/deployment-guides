@@ -11,5 +11,6 @@ We will endeavour to deploy the following:
 
 ## Platforms
 
+* [AWS](./aws/README.md)
 * [Azure](./azure/README.md)
 * [Google Cloud Platform](./google-cloud-platform/README.md)
