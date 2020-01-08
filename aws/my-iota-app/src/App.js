@@ -10,7 +10,7 @@ class App extends React.Component {
 
         const hostParts = window.location.hostname.split(".");
 
-        this.socket = io(hostParts.length === 1 ? 'http://localhost:3001' : `https://my-iota-api-az.${hostParts[1]}.${hostParts[2]}`);
+        this.socket = io(hostParts.length === 1 ? 'http://localhost:3001' : `https://my-iota-api-aws.${hostParts[1]}.${hostParts[2]}`);
         this.socket.on('connect', () => {
             this.setState({
                 progress: this.state.progress + '\nConnected'

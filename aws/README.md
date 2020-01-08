@@ -174,17 +174,76 @@ option_settings:
 
 Then redeploy the app with `eb deploy`.
 
+## Add an expressjs api
 
+To add the API we are effectively setting up a complete new application.
 
+Create a new folder for your api e.g. `my-iota-api` and a new `package.json`, then install the `expressjs` package.
 
+Add a simple expressjs server script e.g. `app.js`
 
+```js
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3001;
 
+app.get('/', (req, res) => res.send('Hello World!'))
 
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+```
 
+Create and deploy the new application.
 
+```shell
+aws elasticbeanstalk create-application --application-name my-iota-api --tags Key=iota-project,Value=my-iota-api
 
+eb init -i my-iota-api -p node.js --tags iota-project=my-iota-api
 
+eb create my-iota-api-dev --cname my-iota-api --tags iota-project=my-iota-api
+```
 
+Create the DNS record
+
+```shell
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE/dns_records" \
+-H "X-Auth-Email: $EMAIL" \
+-H "X-Auth-Key: $API-KEY" \
+-H "Content-Type: application/json" \
+--data '{"type":"CNAME","name":"my-iota-api-aws","content":"my-iota-api.eu-central-1.elasticbeanstalk.com","ttl":1,"priority":10,"proxied":false}'
+```
+
+Add the `./ebextensions/classic-secure-listener.config` file as described earlier.
+
+Redeploy `eb deploy`
+
+The expressjs app will now be available at <https://my-iota-api-aws.dag.sh/>
+
+## Instances
+
+The Elastic Beanstalk environment has a very powerful instance management setup.
+
+By default your configuration will have a load-balanced auto-scaling group which scales between 1 and 4 instances depending on load.
+
+For more details on how to configure the instance management see [AWS - Auto Scaling Groups](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.as.html)
+
+## Websockets
+
+There is no additional configuration required to deploy websockets for an application.
+
+## Docker
+
+There are a lot of steps to run a docker container in AWS, the following tutorials will guide you.
+
+* [http://okigiveup.net/discovering-aws-with-the-cli-part-2-ecs-and-fargate/](http://okigiveup.net/discovering-aws-with-the-cli-part-2-ecs-and-fargate/)
+* [https://medium.com/boltops/gentle-introduction-to-how-aws-ecs-works-with-example-tutorial-cea3d27ce63d](https://medium.com/boltops/gentle-introduction-to-how-aws-ecs-works-with-example-tutorial-cea3d27ce63d)
+
+## Logging
+
+Just about every resource deployed to AWS has associated logging, just login to the portal and take a look at the resource your are interested in.
+
+## Automation
+
+For more on CI integration for GitHub see [https://aws.amazon.com/blogs/devops/aws-developer-tools-expands-integration-to-include-github/](https://aws.amazon.com/blogs/devops/aws-developer-tools-expands-integration-to-include-github/)
 
 ## Adding wildcard certificate
 
