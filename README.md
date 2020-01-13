@@ -14,3 +14,7 @@ We will endeavour to deploy the following:
 * [AWS](./aws/README.md)
 * [Azure](./azure/README.md)
 * [Google Cloud Platform](./google-cloud-platform/README.md)
+* Digital Ocean
+* Heroku - Is hosted on AWS EC2 Instances
+* Zeit/Now - Doesn't support websockets
+* Netlify - Doesn't support websockets
